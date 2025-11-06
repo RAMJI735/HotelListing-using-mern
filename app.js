@@ -96,6 +96,11 @@ app.use("/listings",listings);
 app.use("/listings/:id/reviews",reviews);
 app.use("/",Signup);
 
+// Default landing page → login
+app.get("/", (req, res) => {
+    return res.redirect("/login");
+});
+
 app.all("*",(req,res,next)=>{
     next(new ExpressError(404,"Page not Found"));
 });
