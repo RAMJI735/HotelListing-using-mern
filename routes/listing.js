@@ -9,14 +9,30 @@ const { isLoggedIn, isOwned, validateListing } = require("../middleware.js");
 const { populate } = require("../models/review.js");
 const listingController= require("../controllers/listings.js");
 const multer  = require("multer");
-let storage;
-try{
-    ({ storage } = require("../cloudconfig.js"));
-} catch (e) {
-    console.warn("cloudconfig.js not found or failed to load; using memory storage. Error:", e.message);
-    storage = multer.memoryStorage();
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Configure storage directly here to avoid external module dependency
+const { CLOUD_NAME, CLOUD_API_KEY, CLOUD_API_SECRET } = process.env;
+let upload;
+if (CLOUD_NAME && CLOUD_API_KEY && CLOUD_API_SECRET) {
+    cloudinary.config({
+        cloud_name: CLOUD_NAME,
+        api_key: CLOUD_API_KEY,
+        api_secret: CLOUD_API_SECRET,
+    });
+    const storage = new CloudinaryStorage({
+        cloudinary,
+        params: {
+            folder: 'wanderlust_DEV',
+            allowed_formats: ['png', 'jpg', 'jpeg'],
+        },
+    });
+    upload = multer({ storage });
+} else {
+    console.warn("Cloudinary env vars missing; using memory storage for uploads.");
+    upload = multer({ storage: multer.memoryStorage() });
 }
-const upload = multer({ storage });
 const uploadSingle = upload.single("listing[image]");
 
 // Handle multer/cloudinary upload errors gracefully

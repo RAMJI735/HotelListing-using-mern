@@ -6,6 +6,10 @@ if(process.env.NODE_ENV!= "production"){
 
 const express= require("express");
 const app= express();
+// trust proxy for secure cookies behind proxies (e.g., Render/Heroku)
+if (process.env.NODE_ENV === "production") {
+    app.set('trust proxy', 1);
+}
 const mongoose = require("mongoose");
 const path= require("path");
 const methodOverride= require("method-override");

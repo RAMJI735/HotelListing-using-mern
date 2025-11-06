@@ -44,8 +44,11 @@ module.exports.Login= async (req,res)=>{
         if(err){
         return next(err);
     }
-req.flash("success","Logged you out!");
-res.redirect("/listings");
+    // Destroy session and clear cookie, then redirect to login
+    req.session.destroy(()=>{
+        res.clearCookie("wanderlust.sid");
+        return res.redirect("/login");
+    });
 });
 
 }

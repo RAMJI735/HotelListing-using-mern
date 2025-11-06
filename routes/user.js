@@ -21,7 +21,7 @@ router.route("/login")
 saveRedirect,
     passport.authenticate("local",{
         failureRedirect: "/login",
-        failureFlash:"true",
+        failureFlash: true,
     }),
    Login
 );
