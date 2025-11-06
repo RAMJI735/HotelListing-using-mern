@@ -40,8 +40,8 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 const SESSION_SECRET = process.env.SESSION_SECRET || "supersecret";
 // prefer env var in production; fallback to hardcoded for local
-const mongoUrlFallback = "mongodb+srv://dipanshusrivastava735:deepanshu123@cluster0.j0x2swe.mongodb.net/wander";
-const dburl = process.env.ATLASDB_URL || mongoUrlFallback;
+
+const dburl = process.env.ATLASDB_URL
 
 app.use(session({
     name: "wanderlust.sid",
@@ -117,3 +117,4 @@ app.use((err,req,res, next)=>{
 app.listen(8080,()=>{
     console.log("running on port 8080");
 });
+
