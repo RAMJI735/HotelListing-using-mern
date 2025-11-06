@@ -9,7 +9,13 @@ const { isLoggedIn, isOwned, validateListing } = require("../middleware.js");
 const { populate } = require("../models/review.js");
 const listingController= require("../controllers/listings.js");
 const multer  = require("multer");
-const {storage}= require("../cloudconfig.js");
+let storage;
+try{
+    ({ storage } = require("../cloudconfig.js"));
+} catch (e) {
+    console.warn("cloudconfig.js not found or failed to load; using memory storage. Error:", e.message);
+    storage = multer.memoryStorage();
+}
 const upload = multer({ storage });
 const uploadSingle = upload.single("listing[image]");
 
