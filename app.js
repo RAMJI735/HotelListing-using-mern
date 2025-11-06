@@ -14,6 +14,7 @@ const ExpressError= require("./utilis/ExpressError.js");
 const listings= require("./routes/listing.js");
 const reviews= require("./routes/review.js");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const flash= require("connect-flash");
 const passport= require("passport");
 const Signup= require("./routes/user.js");
@@ -33,11 +34,25 @@ app.use(methodOverride("_method"));
 app.engine("ejs",ejsmate);
 app.use(express.static(path.join(__dirname,"/public")));
 
+const SESSION_SECRET = process.env.SESSION_SECRET || "supersecret";
+// prefer env var in production; fallback to hardcoded for local
+const mongoUrlFallback = "mongodb+srv://dipanshusrivastava735:deepanshu123@cluster0.j0x2swe.mongodb.net/wander";
+const dburl = process.env.ATLASDB_URL || mongoUrlFallback;
+
 app.use(session({
-    secret: "supersecret",
+    name: "wanderlust.sid",
+    secret: SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: dburl,
+        collectionName: "sessions",
+        touchAfter: 24 * 3600,
+      }),
     cookie:{
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
         expires: Date.now()+ 7* 24 * 60 * 60 * 1000,
         maxAge: 7* 24 * 60 * 60 * 1000,
     },
@@ -52,8 +67,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 
-// const dburl= process.env.ATLASDB_URL;
-const mongoUrl="mongodb+srv://dipanshusrivastava735:deepanshu123@cluster0.j0x2swe.mongodb.net/wander"
+const mongoUrl= dburl;
 main().then((res)=>{
     console.log("connected to db");
 })
