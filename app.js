@@ -53,7 +53,7 @@ passport.deserializeUser(User.deserializeUser());
 
 
 // const dburl= process.env.ATLASDB_URL;
-const mongoUrl="mongodb://127.0.0.1:27017/wanderlust";
+const mongoUrl="mongodb+srv://dipanshusrivastava735:deepanshu123@cluster0.j0x2swe.mongodb.net/wander"
 main().then((res)=>{
     console.log("connected to db");
 })

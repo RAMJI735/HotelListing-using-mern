@@ -11,6 +11,19 @@ const listingController= require("../controllers/listings.js");
 const multer  = require("multer");
 const {storage}= require("../cloudconfig.js");
 const upload = multer({ storage });
+const uploadSingle = upload.single("listing[image]");
+
+// Handle multer/cloudinary upload errors gracefully
+function handleUpload(req, res, next) {
+    uploadSingle(req, res, function (err) {
+        if (err) {
+            console.error("Multer/Upload error:", err);
+            req.flash("error", "Image upload failed. Please try again.");
+            return res.redirect("/listings/new");
+        }
+        next();
+    });
+}
 // const upload = multer({ dest: 'uploads/' })
 
 
@@ -26,7 +39,7 @@ router
 .route("/")
 .get( wrapAsync(listingController.index))
 .post( isLoggedIn,
-    upload.single("listing[image]"),
+    handleUpload,
     validateListing,
      wrapAsync(listingController.postlisting)
 );
@@ -40,8 +53,8 @@ router.get("/new", isLoggedIn,listingController.renderNewForm);
 
 router.route("/:id")
 .get( wrapAsync(listingController.ShowListing))
-.put(validateListing, isOwned,upload.single("listing[image]"), wrapAsync(listingController.updatelisting))
-.delete( isLoggedIn,isOwned,  wrapAsync(listingController.deletelisting));
+.put(isLoggedIn, isOwned, handleUpload, validateListing, wrapAsync(listingController.updatelisting))
+.delete( isLoggedIn, isOwned, wrapAsync(listingController.deletelisting));
 
 // //index route 
 // router.get("/", wrapAsync(listingController.index)
@@ -73,6 +86,9 @@ router.route("/:id")
 
 // edit form route
 router.get("/:id/edit", isLoggedIn, isOwned, wrapAsync(listingController.editform));
+
+// Fallback for clients/pages that submit without method-override
+router.post("/:id", isLoggedIn, isOwned, handleUpload, validateListing, wrapAsync(listingController.updatelisting));
 
 //  update route
 // router.put("/:id", validateListing, isOwned, wrapAsync(listingController.updatelisting));

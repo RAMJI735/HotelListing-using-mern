@@ -1,10 +1,12 @@
+const User = require("../models/user");
+
 
 
 module.exports.signupform= (req,res)=>{
     res.render("./user/user.ejs");
 };
 
-module.exports.Signup = async(req,res)=>{
+module.exports.Signup = async(req,res,next)=>{
     try{
         let {username, email, password}= req.body;
     const newUser= new User({email,username});
@@ -37,7 +39,7 @@ module.exports.Login= async (req,res)=>{
     res.redirect(redirect);
     };
 
-    module.exports.Logout= (req,res)=>{
+    module.exports.Logout= (req,res,next)=>{
     req.logOut((err)=>{
         if(err){
         return next(err);

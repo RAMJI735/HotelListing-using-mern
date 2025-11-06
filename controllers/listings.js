@@ -22,25 +22,44 @@ module.exports.postlisting= async (req, res, next) => {
     // }    
 
     // res.send(req.file);
-    let response=await geoCodingClient
-    .forwardGeocode({
-        // query: "New Delhi, India",
-        query: req.body.listing.location,
-        limit:1,
-    })
-    .send();
+    let response;
+    try{
+        response = await geoCodingClient
+        .forwardGeocode({
+            // query: "New Delhi, India",
+            query: req.body.listing.location,
+            limit:1,
+        })
+        .send();
+    } catch (err) {
+        // If geocoding fails (e.g., missing MAP_TOKEN or network), proceed without geometry
+        response = { body: { features: [] } };
+    }
 
     // console.log(response.body.features[0].geometry);
     // res.send("done");
 
-    let url= req.file.path;
-    let filename= req.file.filename;
+    let url;
+    let filename;
+    if (req.file && req.file.path && req.file.filename) {
+        url = req.file.path;
+        filename = req.file.filename;
+    } else {
+        // fallback image if none uploaded
+        url = "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg";
+        filename = "placeholder";
+    }
 // console.log(url,"..",filename);
     let listing = req.body.listing;
     const newListing = new Listing(listing);
     newListing.owner = req.user._id;
     newListing.image={url,filename};
-    newListing.geoMetry= response.body.features[0].geometry;
+    const feature = Array.isArray(response?.body?.features) ? response.body.features[0] : undefined;
+    if (feature && feature.geometry) {
+        newListing.geoMetry = feature.geometry;
+    } else {
+        newListing.geoMetry = { type: "Point", coordinates: [0, 0] };
+    }
     await newListing.save();
     req.flash("success", "New listing created");
     res.redirect("/listings");
